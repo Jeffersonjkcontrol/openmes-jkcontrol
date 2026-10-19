@@ -1,0 +1,11 @@
+{
+    "name": "JkControl",
+    "display_name": "JKControl Integration",
+    "version": "0.1.0",
+    "description": "Bridges jkcontrol.online machine devices into OpenMES: operator sessions from RFID cards and stop causes entered at the machine.",
+    "author": "JKControl",
+    "provider": "Modules\\JkControl\\Providers\\JkControlServiceProvider",
+    "requires_core": ">=0.27.0",
+    "hooks": [],
+    "requires": []
+}
