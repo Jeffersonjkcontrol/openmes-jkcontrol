@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Modules\JkControl\Http\Controllers\OperatorEventController;
 use Modules\JkControl\Http\Controllers\WorkstationDowntimeReasonController;
+use Modules\JkControl\Http\Controllers\WorkstationWorkOrderController;
 
 /*
 | Machine-to-machine endpoints called by the jkcontrol → OpenMES connector.
@@ -17,4 +18,8 @@ Route::prefix('api/v1/jk')
         Route::post('/workstations/{workstation}/downtime-reason', [WorkstationDowntimeReasonController::class, 'store'])
             ->whereNumber('workstation')
             ->name('jkcontrol.workstations.downtime-reason');
+
+        Route::post('/workstations/{workstation}/work-order', [WorkstationWorkOrderController::class, 'store'])
+            ->whereNumber('workstation')
+            ->name('jkcontrol.workstations.work-order');
     });

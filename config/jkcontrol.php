@@ -24,6 +24,13 @@ return [
     'reason_grace_minutes' => (int) env('JKCONTROL_REASON_GRACE_MINUTES', 30),
 
     /*
+    | Counting source given to a work order started by a card, when it still has
+    | the core default (operator): the core ignores machine counts for orders
+    | that are not machine-counted. machine | both | null (leave as is).
+    */
+    'order_counting_source' => env('JKCONTROL_ORDER_COUNTING_SOURCE', 'machine'),
+
+    /*
     | Employee activity type written when an operator session closes.
     | Must be one of App\Models\EmployeeActivity::TYPES.
     */
