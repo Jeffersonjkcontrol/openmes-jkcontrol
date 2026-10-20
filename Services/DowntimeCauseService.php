@@ -58,10 +58,34 @@ class DowntimeCauseService
         return $stop->needs_reason || (int) $stop->classified_by_id === (int) $by->id;
     }
 
-    public function classify(ProductionDowntime $stop, DowntimeReason $reason, User $by): ProductionDowntime
+    public function classify(ProductionDowntime $stop, DowntimeReason $reason, User $by, ?string $workerCard = null): ProductionDowntime
     {
-        $stop->classify($reason, $by);
+        $stop->classify($reason, $by, $this->notesWithCard($stop->notes, $workerCard));
 
         return $stop->fresh('reason');
+    }
+
+    /**
+     * Who handled the stop, from the card read at the machine (e.g. the mold
+     * change): noted once on the stop, with the worker's name when the card is
+     * known. Stops have no worker column, so the note is where people see it.
+     */
+    private function notesWithCard(?string $notes, ?string $card): ?string
+    {
+        $card = trim((string) $card);
+        if ($card === '') {
+            return $notes;
+        }
+
+        $worker = app(CardResolver::class)->findWorker($card);
+        $line = $worker
+            ? __('Card :card read at the machine: :name.', ['card' => $card, 'name' => $worker->name])
+            : __('Card :card read at the machine (no worker has this card).', ['card' => $card]);
+
+        if ($notes !== null && str_contains($notes, $line)) {
+            return $notes;
+        }
+
+        return $notes === null || $notes === '' ? $line : $notes."\n".$line;
     }
 }

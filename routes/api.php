@@ -1,8 +1,10 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Modules\JkControl\Http\Controllers\IdealCycleImportController;
 use Modules\JkControl\Http\Controllers\OperatorEventController;
 use Modules\JkControl\Http\Controllers\WorkstationDowntimeReasonController;
+use Modules\JkControl\Http\Controllers\WorkstationQualityCheckController;
 use Modules\JkControl\Http\Controllers\WorkstationWorkOrderController;
 
 /*
@@ -22,4 +24,12 @@ Route::prefix('api/v1/jk')
         Route::post('/workstations/{workstation}/work-order', [WorkstationWorkOrderController::class, 'store'])
             ->whereNumber('workstation')
             ->name('jkcontrol.workstations.work-order');
+
+        Route::post('/workstations/{workstation}/quality-check', [WorkstationQualityCheckController::class, 'store'])
+            ->whereNumber('workstation')
+            ->name('jkcontrol.workstations.quality-check');
+
+        // Ideal cycles for machine OEE, sent by the ERP (same rows as the spreadsheet import).
+        Route::post('/ideal-cycles', [IdealCycleImportController::class, 'store'])
+            ->name('jkcontrol.ideal-cycles.import');
     });

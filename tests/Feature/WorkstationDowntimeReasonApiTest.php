@@ -6,6 +6,7 @@ use App\Models\DowntimeReason;
 use App\Models\Line;
 use App\Models\ProductionDowntime;
 use App\Models\User;
+use App\Models\Worker;
 use App\Models\Workstation;
 use Illuminate\Support\Carbon;
 use Modules\JkControl\Providers\JkControlServiceProvider;
@@ -137,6 +138,31 @@ class WorkstationDowntimeReasonApiTest extends ModuleTestCase
         $this->classify(['reason_code' => '15'])->assertOk()->assertJsonPath('data.reason.code', '15');
 
         $this->assertSame($this->toolChange->id, $stop->fresh()->downtime_reason_id);
+    }
+
+    public function test_the_card_of_who_handled_the_stop_is_noted_once(): void
+    {
+        Worker::factory()->create(['name' => 'Ana Souza', 'custom_fields' => ['rfid_card' => '75']]);
+        DowntimeReason::factory()->create(['code' => 'changeover', 'name' => 'Changeover / Setup']);
+        $stop = $this->autoStop('2026-10-19 09:50:00');
+
+        $this->classify(['reason_code' => 'changeover', 'worker_card' => '75'])
+            ->assertOk()
+            ->assertJsonPath('data.reason.code', 'changeover')
+            ->assertJsonPath('data.notes', 'Card 75 read at the machine: Ana Souza.');
+        $this->classify(['reason_code' => 'changeover', 'worker_card' => '75'])->assertOk();
+
+        $this->assertSame('Card 75 read at the machine: Ana Souza.', $stop->fresh()->notes);
+    }
+
+    public function test_an_unknown_card_is_noted_by_its_number_after_existing_notes(): void
+    {
+        $stop = $this->autoStop('2026-10-19 09:50:00');
+        $stop->update(['notes' => 'Molde com rebarba']);
+
+        $this->classify(['reason_code' => '15', 'worker_card' => '99'])->assertOk();
+
+        $this->assertSame("Molde com rebarba\nCard 99 read at the machine (no worker has this card).", $stop->fresh()->notes);
     }
 
     public function test_placeholder_codes_are_not_a_cause(): void

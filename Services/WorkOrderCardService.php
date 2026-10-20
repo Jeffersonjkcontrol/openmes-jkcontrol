@@ -116,7 +116,8 @@ class WorkOrderCardService
             }
             // The machine counts this order now; an order left on the default
             // (operator) would have every machine count ignored by the core.
-            $source = config('jkcontrol.order_counting_source');
+            // Default here too: a config cache built while the module was off has no jkcontrol keys.
+            $source = config('jkcontrol.order_counting_source', WorkOrder::COUNTING_MACHINE);
             if (in_array($source, WorkOrder::COUNTING_SOURCES, true)
                 && in_array($order->counting_source, [null, WorkOrder::COUNTING_OPERATOR], true)) {
                 $changes['counting_source'] = $source;
@@ -126,6 +127,23 @@ class WorkOrderCardService
             }
 
             return ['status' => $status, 'batch' => $batch->fresh(), 'order' => $order->fresh()];
+        });
+    }
+
+    /**
+     * The machine is making an order that cannot run in OpenMES (unknown, closed,
+     * on hold…): park whatever ran there, so the machine's counts stop landing on
+     * the previous order and stay as machine events only.
+     *
+     * @return int batches parked
+     */
+    public function park(Workstation $workstation): int
+    {
+        return DB::transaction(function () use ($workstation) {
+            $running = $this->runningBatches($workstation);
+            $running->each->update(['status' => Batch::STATUS_PENDING]);
+
+            return $running->count();
         });
     }
 

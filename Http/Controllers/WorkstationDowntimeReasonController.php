@@ -26,7 +26,7 @@ class WorkstationDowntimeReasonController extends Controller
             ], 409);
         }
 
-        $stop = $this->causes->classify($stop, $request->reason(), $request->user());
+        $stop = $this->causes->classify($stop, $request->reason(), $request->user(), $request->input('worker_card'));
 
         return response()->json([
             'status' => 'classified',
@@ -40,6 +40,7 @@ class WorkstationDowntimeReasonController extends Controller
                 ],
                 'started_at' => $stop->started_at?->toIso8601String(),
                 'ended_at' => $stop->ended_at?->toIso8601String(),
+                'notes' => $stop->notes,
             ],
         ]);
     }

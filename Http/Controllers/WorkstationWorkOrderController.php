@@ -17,6 +17,18 @@ class WorkstationWorkOrderController extends Controller
      */
     public function store(StartWorkstationWorkOrderRequest $request, Workstation $workstation): JsonResponse
     {
+        if (($reason = $request->blockReason()) !== null) {
+            return response()->json([
+                'status' => 'parked',
+                'reason' => $reason,
+                'data' => [
+                    'order_no' => (string) $request->input('order_no'),
+                    'workstation_id' => $workstation->id,
+                    'parked_batches' => $this->cards->park($workstation),
+                ],
+            ]);
+        }
+
         ['status' => $status, 'batch' => $batch, 'order' => $order] =
             $this->cards->start($request->workOrder(), $workstation, $request->occurredAt());
 

@@ -34,7 +34,8 @@ class Installer
         CustomFieldDefinition::create([
             'entity_type' => 'worker',
             'key' => $key,
-            'label' => 'RFID card',
+            // In the system language at install time: it is the label people see on the worker form.
+            'label' => __('RFID card'),
             'type' => CustomFieldType::Text->value,
             'required' => false,
             'position' => ((int) CustomFieldDefinition::where('entity_type', 'worker')->max('position')) + 1,

@@ -35,6 +35,8 @@ class ClassifyWorkstationDowntimeRequest extends FormRequest
         return [
             'reason_code' => ['required', 'string', 'max:64'],
             'occurred_at' => ['nullable', 'date'],
+            // Card of the person who handled the stop (e.g. the mold change): noted on it.
+            'worker_card' => ['nullable', 'string', 'max:64'],
         ];
     }
 

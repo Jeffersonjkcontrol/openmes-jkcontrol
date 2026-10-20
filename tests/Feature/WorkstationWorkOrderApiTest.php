@@ -196,6 +196,49 @@ class WorkstationWorkOrderApiTest extends ModuleTestCase
         $this->card('500101')->assertUnprocessable()->assertJsonValidationErrors(['order_no']);
     }
 
+    public function test_order_that_cannot_start_parks_the_running_one_when_asked(): void
+    {
+        $running = $this->order('500102');
+        $this->card('500102', ['when_blocked' => 'park'])->assertCreated();
+        $batch = Batch::where('work_order_id', $running->id)->sole();
+
+        $this->card('555', ['when_blocked' => 'park'])
+            ->assertOk()
+            ->assertJsonPath('status', 'parked')
+            ->assertJsonPath('reason', 'No work order has this number.')
+            ->assertJsonPath('data.order_no', '555')
+            ->assertJsonPath('data.parked_batches', 1);
+
+        // Counts stop landing on the previous order; it is not closed, and its card resumes it.
+        $this->assertNull($this->activeOrder());
+        $this->assertSame(Batch::STATUS_PENDING, $batch->fresh()->status);
+        $this->assertSame(WorkOrder::STATUS_IN_PROGRESS, $running->fresh()->status);
+        $this->card('500102')->assertOk()->assertJsonPath('status', 'resumed');
+    }
+
+    public function test_closed_order_parks_with_the_reason(): void
+    {
+        $this->order('1', ['status' => WorkOrder::STATUS_DONE]);
+
+        $this->card('1', ['when_blocked' => 'park'])
+            ->assertOk()
+            ->assertJsonPath('status', 'parked')
+            ->assertJsonPath('reason', 'This work order is already closed.')
+            ->assertJsonPath('data.parked_batches', 0);
+        $this->assertSame(0, Batch::count());
+    }
+
+    public function test_when_blocked_accepts_only_reject_or_park(): void
+    {
+        $this->card('555', ['when_blocked' => 'reject'])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['order_no' => 'No work order has this number.']);
+
+        $this->card('555', ['when_blocked' => 'ignore'])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['when_blocked']);
+    }
+
     public function test_order_number_is_required(): void
     {
         $this->actingAs($this->connector, 'sanctum')

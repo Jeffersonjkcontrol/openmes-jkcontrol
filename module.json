@@ -1,8 +1,8 @@
 {
     "name": "JkControl",
     "display_name": "JKControl Integration",
-    "version": "0.2.0",
-    "description": "Bridges jkcontrol.online machine devices into OpenMES: operator sessions from RFID cards, stop causes entered at the machine and work orders started by card.",
+    "version": "0.3.0",
+    "description": "Bridges jkcontrol.online machine devices into OpenMES: operator sessions from RFID cards, stop causes entered at the machine, work orders started by card, quality cards, who changed the mold, and OEE per machine with its cycles.",
     "author": "JKControl",
     "provider": "Modules\\JkControl\\Providers\\JkControlServiceProvider",
     "requires_core": ">=0.27.0",
